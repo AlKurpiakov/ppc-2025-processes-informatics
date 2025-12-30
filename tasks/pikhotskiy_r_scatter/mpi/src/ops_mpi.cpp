@@ -2,6 +2,7 @@
 
 #include <mpi.h>
 
+#include <cstddef>
 #include <cstring>
 
 #include "pikhotskiy_r_scatter/common/include/common.hpp"
@@ -72,14 +73,14 @@ int PikhotskiyRScatterMPI::CustomScatterInt(const void *sendbuf, int sendcount, 
     const int *send_data = static_cast<const int *>(sendbuf);
 
     if (recv_data != nullptr && sendcount > 0) {
-      std::memcpy(recv_data, send_data + static_cast<ptrdiff_t>(rank) * sendcount,
+      std::memcpy(recv_data, send_data + (static_cast<ptrdiff_t>(rank) * sendcount),
                   static_cast<size_t>(sendcount) * sizeof(int));
     }
 
     if (sendcount > 0) {
       for (int i = 0; i < size; ++i) {
         if (i != root) {
-          MPI_Send(send_data + static_cast<ptrdiff_t>(i) * sendcount, sendcount, MPI_INT, i, 0, comm);
+          MPI_Send(send_data + (static_cast<ptrdiff_t>(i) * sendcount), sendcount, MPI_INT, i, 0, comm);
         }
       }
     }
@@ -103,14 +104,14 @@ int PikhotskiyRScatterMPI::CustomScatterFloat(const void *sendbuf, int sendcount
     const auto *send_data = static_cast<const float *>(sendbuf);
 
     if (recv_data != nullptr && sendcount > 0) {
-      std::memcpy(recv_data, send_data + static_cast<ptrdiff_t>(rank) * sendcount,
+      std::memcpy(recv_data, send_data + (static_cast<ptrdiff_t>(rank) * sendcount),
                   static_cast<size_t>(sendcount) * sizeof(float));
     }
 
     if (sendcount > 0) {
       for (int i = 0; i < size; ++i) {
         if (i != root) {
-          MPI_Send(send_data + static_cast<ptrdiff_t>(i) * sendcount, sendcount, MPI_FLOAT, i, 0, comm);
+          MPI_Send(send_data + (static_cast<ptrdiff_t>(i) * sendcount), sendcount, MPI_FLOAT, i, 0, comm);
         }
       }
     }
@@ -134,14 +135,14 @@ int PikhotskiyRScatterMPI::CustomScatterDouble(const void *sendbuf, int sendcoun
     const auto *send_data = static_cast<const double *>(sendbuf);
 
     if (recv_data != nullptr && sendcount > 0) {
-      std::memcpy(recv_data, send_data + static_cast<ptrdiff_t>(rank) * sendcount,
+      std::memcpy(recv_data, send_data + (static_cast<ptrdiff_t>(rank) * sendcount),
                   static_cast<size_t>(sendcount) * sizeof(double));
     }
 
     if (sendcount > 0) {
       for (int i = 0; i < size; ++i) {
         if (i != root) {
-          MPI_Send(send_data + static_cast<ptrdiff_t>(i) * sendcount, sendcount, MPI_DOUBLE, i, 0, comm);
+          MPI_Send(send_data + (static_cast<ptrdiff_t>(i) * sendcount), sendcount, MPI_DOUBLE, i, 0, comm);
         }
       }
     }

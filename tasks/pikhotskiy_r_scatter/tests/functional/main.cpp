@@ -18,8 +18,6 @@ namespace pikhotskiy_r_scatter {
 
 class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
-  PikhotskiyRScatterRunFuncTestsProcesses() : expected_data_(nullptr) {}
-
   static std::string PrintTestParam(const TestType &test_param) {
     return std::get<1>(test_param);
   }

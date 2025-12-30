@@ -29,8 +29,8 @@ class PikhotskiyRScatterMPI : public BaseTask {
   static int CustomScatterDouble(const void *sendbuf, int sendcount, void *recvbuf, int recvcount, int root,
                                  MPI_Comm comm);
 
-  int CustomScatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount,
-                    MPI_Datatype recvtype, int root, MPI_Comm comm);
+  static int CustomScatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount,
+                           MPI_Datatype recvtype, int root, MPI_Comm comm);
 };
 
 }  // namespace pikhotskiy_r_scatter
