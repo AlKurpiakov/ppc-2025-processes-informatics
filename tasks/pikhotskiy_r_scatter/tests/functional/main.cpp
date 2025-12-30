@@ -18,6 +18,8 @@ namespace pikhotskiy_r_scatter {
 
 class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
+  PikhotskiyRScatterRunFuncTestsProcesses() = default;
+
   static std::string PrintTestParam(const TestType &test_param) {
     return std::get<1>(test_param);
   }
@@ -48,17 +50,29 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
     int rank = 0;
     int size = 0;
 
-    MPI_Comm_rank(comm, &rank);
-    MPI_Comm_size(comm, &size);
-    int type_size = 0;
-    MPI_Type_size(recvtype, &type_size);
+    size_t type_size = 0;
 
     size_t block_size = 0;
 
     const void *current_sendbuf = nullptr;
     if (IsSeqTest()) {
+      // Для последовательных тестов не используем MPI функции
+      // Определяем размер типа вручную
+      if (recvtype == MPI_INT) {
+        type_size = sizeof(int);
+      } else if (recvtype == MPI_FLOAT) {
+        type_size = sizeof(float);
+      } else if (recvtype == MPI_DOUBLE) {
+        type_size = sizeof(double);
+      }
       current_sendbuf = sendbuf;
     } else {
+      // Для MPI тестов используем MPI функции
+      MPI_Comm_rank(comm, &rank);
+      MPI_Comm_size(comm, &size);
+      int mpi_type_size = 0;
+      MPI_Type_size(recvtype, &mpi_type_size);
+      type_size = static_cast<size_t>(mpi_type_size);
       current_sendbuf = (rank == root) ? sendbuf : nullptr;
     }
 
@@ -102,8 +116,23 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
     int recvcount = std::get<4>(input_data_);
     MPI_Datatype recvtype = std::get<5>(input_data_);
 
-    int type_size = 0;
-    MPI_Type_size(recvtype, &type_size);
+    size_t type_size = 0;
+    if (IsSeqTest()) {
+      // Для последовательных тестов определяем размер типа вручную
+      if (recvtype == MPI_INT) {
+        type_size = sizeof(int);
+      } else if (recvtype == MPI_FLOAT) {
+        type_size = sizeof(float);
+      } else if (recvtype == MPI_DOUBLE) {
+        type_size = sizeof(double);
+      }
+    } else {
+      // Для MPI тестов используем MPI_Type_size
+      int mpi_type_size = 0;
+      MPI_Type_size(recvtype, &mpi_type_size);
+      type_size = static_cast<size_t>(mpi_type_size);
+    }
+
     size_t total_bytes = static_cast<size_t>(recvcount) * type_size;
 
     if (total_bytes == 0) {
