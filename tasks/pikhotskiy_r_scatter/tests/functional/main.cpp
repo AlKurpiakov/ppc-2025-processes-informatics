@@ -3,7 +3,7 @@
 
 #include <array>
 #include <cstddef>
-#include <cstring>  // добавлен для std::memcpy, std::memset, std::memcmp
+#include <cstring>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -18,7 +18,7 @@ namespace pikhotskiy_r_scatter {
 
 class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
-  PikhotskiyRScatterRunFuncTestsProcesses() : input_data_root_(), input_data_(), expected_data_(nullptr) {}
+  PikhotskiyRScatterRunFuncTestsProcesses() : expected_data_(nullptr) {}
 
   static std::string PrintTestParam(const TestType &test_param) {
     return std::get<1>(test_param);
@@ -47,22 +47,24 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
     int root = std::get<6>(input_data_root_);
     MPI_Comm comm = std::get<7>(input_data_root_);
 
-    int rank = 0;  // инициализация отдельно
-    int size = 0;  // инициализация отдельно
+    int rank = 0;
+    int size = 0;
+
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &size);
-
-    int type_size = 0;  // инициализация
+    int type_size = 0;
     MPI_Type_size(recvtype, &type_size);
 
-    size_t block_size = static_cast<size_t>(recvcount) * type_size;
+    size_t block_size = 0;
 
-    const void *current_sendbuf = nullptr;  // инициализация
+    const void *current_sendbuf = nullptr;
     if (IsSeqTest()) {
       current_sendbuf = sendbuf;
     } else {
       current_sendbuf = (rank == root) ? sendbuf : nullptr;
     }
+
+    block_size = static_cast<size_t>(recvcount) * type_size;
 
     recvbuf_storage_.resize(block_size);
 
@@ -71,7 +73,7 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
     if (IsSeqTest()) {
       if (block_size > 0) {
         if (sendbuf != nullptr) {
-          auto source = static_cast<const unsigned char *>(sendbuf);  // используем auto
+          const auto *source = static_cast<const unsigned char *>(sendbuf);
           std::memcpy(expected_storage_.data(), source, block_size);
         } else {
           std::memset(expected_storage_.data(), 0, block_size);
@@ -88,7 +90,7 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
     input_data_ = std::make_tuple(current_sendbuf,          // sendbuf
                                   sendcount,                // sendcount
                                   sendtype,                 // sendtype
-                                  recvbuf_storage_.data(),  // recvbuf (наш выделенный буфер)
+                                  recvbuf_storage_.data(),  // recvbuf
                                   recvcount,                // recvcount
                                   recvtype,                 // recvtype
                                   root,                     // root
@@ -102,7 +104,7 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
     int recvcount = std::get<4>(input_data_);
     MPI_Datatype recvtype = std::get<5>(input_data_);
 
-    int type_size = 0;  // инициализация
+    int type_size = 0;
     MPI_Type_size(recvtype, &type_size);
     size_t total_bytes = static_cast<size_t>(recvcount) * type_size;
 
@@ -120,7 +122,7 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
  private:
   InType input_data_root_;
   InType input_data_;
-  OutType expected_data_;
+  OutType expected_data_ = nullptr;
 
   std::vector<unsigned char> recvbuf_storage_;
   std::vector<unsigned char> expected_storage_;
@@ -129,7 +131,7 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
 namespace {
 
 const std::vector<int> kIntData = {1, 2, 3, 4, 5, 6};
-const std::vector<float> kFloatData = {1.1F, 2.2F, 3.3F, 4.4F, 5.5F, 6.6F};  // исправлены суффиксы
+const std::vector<float> kFloatData = {1.1F, 2.2F, 3.3F, 4.4F, 5.5F, 6.6F};
 const std::vector<double> kDoubleData = {1.11, 2.22, 3.33, 4.44, 5.55, 6.66};
 
 std::array<TestType, 4> CreateTestParams() {

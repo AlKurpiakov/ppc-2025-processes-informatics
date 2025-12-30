@@ -26,7 +26,33 @@ bool PikhotskiyRScatterMPI::ValidationImpl() {
   int sendcount = std::get<1>(input);
   int recvcount = std::get<4>(input);
 
-  return !(sendcount < 0 || recvcount < 0);
+  if (sendcount < 0 || recvcount < 0) {
+    return false;
+  }
+
+  if (sendcount != recvcount) {
+    return false;
+  }
+
+  void *recvbuf = std::get<3>(input);
+  if (recvcount > 0 && recvbuf == nullptr) {
+    return false;
+  }
+
+  int root = std::get<6>(input);
+  MPI_Comm comm = std::get<7>(input);
+
+  int rank = 0;
+  MPI_Comm_rank(comm, &rank);
+
+  if (rank == root) {
+    const void *sendbuf = std::get<0>(input);
+    if (sendcount > 0 && sendbuf == nullptr) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 bool PikhotskiyRScatterMPI::PreProcessingImpl() {
@@ -46,13 +72,14 @@ int PikhotskiyRScatterMPI::CustomScatterInt(const void *sendbuf, int sendcount, 
     const int *send_data = static_cast<const int *>(sendbuf);
 
     if (recv_data != nullptr && sendcount > 0) {
-      std::memcpy(recv_data, send_data + (rank * sendcount), static_cast<size_t>(sendcount) * sizeof(int));
+      std::memcpy(recv_data, send_data + static_cast<ptrdiff_t>(rank) * sendcount,
+                  static_cast<size_t>(sendcount) * sizeof(int));
     }
 
     if (sendcount > 0) {
       for (int i = 0; i < size; ++i) {
         if (i != root) {
-          MPI_Send(send_data + (i * sendcount), sendcount, MPI_INT, i, 0, comm);
+          MPI_Send(send_data + static_cast<ptrdiff_t>(i) * sendcount, sendcount, MPI_INT, i, 0, comm);
         }
       }
     }
@@ -70,19 +97,20 @@ int PikhotskiyRScatterMPI::CustomScatterFloat(const void *sendbuf, int sendcount
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &size);
 
-  auto recv_data = static_cast<float *>(recvbuf);
+  auto *recv_data = static_cast<float *>(recvbuf);
 
   if (rank == root) {
-    auto send_data = static_cast<const float *>(sendbuf);
+    const auto *send_data = static_cast<const float *>(sendbuf);
 
     if (recv_data != nullptr && sendcount > 0) {
-      std::memcpy(recv_data, send_data + (rank * sendcount), static_cast<size_t>(sendcount) * sizeof(float));
+      std::memcpy(recv_data, send_data + static_cast<ptrdiff_t>(rank) * sendcount,
+                  static_cast<size_t>(sendcount) * sizeof(float));
     }
 
     if (sendcount > 0) {
       for (int i = 0; i < size; ++i) {
         if (i != root) {
-          MPI_Send(send_data + (i * sendcount), sendcount, MPI_FLOAT, i, 0, comm);
+          MPI_Send(send_data + static_cast<ptrdiff_t>(i) * sendcount, sendcount, MPI_FLOAT, i, 0, comm);
         }
       }
     }
@@ -100,19 +128,20 @@ int PikhotskiyRScatterMPI::CustomScatterDouble(const void *sendbuf, int sendcoun
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &size);
 
-  auto recv_data = static_cast<double *>(recvbuf);
+  auto *recv_data = static_cast<double *>(recvbuf);
 
   if (rank == root) {
-    auto send_data = static_cast<const double *>(sendbuf);
+    const auto *send_data = static_cast<const double *>(sendbuf);
 
     if (recv_data != nullptr && sendcount > 0) {
-      std::memcpy(recv_data, send_data + (rank * sendcount), static_cast<size_t>(sendcount) * sizeof(double));
+      std::memcpy(recv_data, send_data + static_cast<ptrdiff_t>(rank) * sendcount,
+                  static_cast<size_t>(sendcount) * sizeof(double));
     }
 
     if (sendcount > 0) {
       for (int i = 0; i < size; ++i) {
         if (i != root) {
-          MPI_Send(send_data + (i * sendcount), sendcount, MPI_DOUBLE, i, 0, comm);
+          MPI_Send(send_data + static_cast<ptrdiff_t>(i) * sendcount, sendcount, MPI_DOUBLE, i, 0, comm);
         }
       }
     }

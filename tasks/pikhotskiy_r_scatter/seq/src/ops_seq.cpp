@@ -4,7 +4,6 @@
 
 #include <cstddef>
 #include <cstring>
-#include <stdexcept>
 
 #include "pikhotskiy_r_scatter/common/include/common.hpp"
 
