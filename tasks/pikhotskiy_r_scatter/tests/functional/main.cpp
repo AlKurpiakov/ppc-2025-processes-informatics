@@ -1,10 +1,9 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
-#include <random>
+#include <cstring>  // добавлен для std::memcpy, std::memset, std::memcmp
 #include <string>
 #include <tuple>
 #include <vector>
@@ -19,6 +18,8 @@ namespace pikhotskiy_r_scatter {
 
 class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
+  PikhotskiyRScatterRunFuncTestsProcesses() : input_data_root_(), input_data_(), expected_data_(nullptr) {}
+
   static std::string PrintTestParam(const TestType &test_param) {
     return std::get<1>(test_param);
   }
@@ -46,16 +47,17 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
     int root = std::get<6>(input_data_root_);
     MPI_Comm comm = std::get<7>(input_data_root_);
 
-    int rank, size;
+    int rank = 0;  // инициализация отдельно
+    int size = 0;  // инициализация отдельно
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &size);
 
-    int type_size;
+    int type_size = 0;  // инициализация
     MPI_Type_size(recvtype, &type_size);
 
     size_t block_size = static_cast<size_t>(recvcount) * type_size;
 
-    const void *current_sendbuf;
+    const void *current_sendbuf = nullptr;  // инициализация
     if (IsSeqTest()) {
       current_sendbuf = sendbuf;
     } else {
@@ -69,7 +71,7 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
     if (IsSeqTest()) {
       if (block_size > 0) {
         if (sendbuf != nullptr) {
-          const unsigned char *source = static_cast<const unsigned char *>(sendbuf);
+          auto source = static_cast<const unsigned char *>(sendbuf);  // используем auto
           std::memcpy(expected_storage_.data(), source, block_size);
         } else {
           std::memset(expected_storage_.data(), 0, block_size);
@@ -100,7 +102,7 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
     int recvcount = std::get<4>(input_data_);
     MPI_Datatype recvtype = std::get<5>(input_data_);
 
-    int type_size;
+    int type_size = 0;  // инициализация
     MPI_Type_size(recvtype, &type_size);
     size_t total_bytes = static_cast<size_t>(recvcount) * type_size;
 
@@ -126,9 +128,9 @@ class PikhotskiyRScatterRunFuncTestsProcesses : public ppc::util::BaseRunFuncTes
 
 namespace {
 
-const std::vector<int> int_data = {1, 2, 3, 4, 5, 6};
-const std::vector<float> float_data = {1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f};
-const std::vector<double> double_data = {1.11, 2.22, 3.33, 4.44, 5.55, 6.66};
+const std::vector<int> kIntData = {1, 2, 3, 4, 5, 6};
+const std::vector<float> kFloatData = {1.1F, 2.2F, 3.3F, 4.4F, 5.5F, 6.6F};  // исправлены суффиксы
+const std::vector<double> kDoubleData = {1.11, 2.22, 3.33, 4.44, 5.55, 6.66};
 
 std::array<TestType, 4> CreateTestParams() {
   static std::vector<int> int_recv_buf(2);
@@ -141,7 +143,7 @@ std::array<TestType, 4> CreateTestParams() {
   static std::vector<double> double_expected_buf(2);
   static std::vector<int> empty_expected_buf(0);
 
-  return {std::make_tuple(std::make_tuple(int_data.data(),      // sendbuf
+  return {std::make_tuple(std::make_tuple(kIntData.data(),      // sendbuf
                                           2,                    // sendcount
                                           MPI_INT,              // sendtype
                                           int_recv_buf.data(),  // recvbuf
@@ -152,7 +154,7 @@ std::array<TestType, 4> CreateTestParams() {
                                           ),
                           "test_int", int_expected_buf.data()),
 
-          std::make_tuple(std::make_tuple(float_data.data(),      // sendbuf
+          std::make_tuple(std::make_tuple(kFloatData.data(),      // sendbuf
                                           2,                      // sendcount
                                           MPI_FLOAT,              // sendtype
                                           float_recv_buf.data(),  // recvbuf
@@ -165,7 +167,7 @@ std::array<TestType, 4> CreateTestParams() {
                           float_expected_buf.data()  // expected_data
                           ),
 
-          std::make_tuple(std::make_tuple(double_data.data(),      // sendbuf
+          std::make_tuple(std::make_tuple(kDoubleData.data(),      // sendbuf
                                           2,                       // sendcount
                                           MPI_DOUBLE,              // sendtype
                                           double_recv_buf.data(),  // recvbuf

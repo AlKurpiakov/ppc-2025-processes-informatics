@@ -2,6 +2,7 @@
 
 #include <mpi.h>
 
+#include <cstddef>
 #include <cstring>
 #include <stdexcept>
 
@@ -15,12 +16,14 @@ PikhotskiyRScatterSEQ::PikhotskiyRScatterSEQ(const InType &in) {
   GetOutput() = nullptr;
 }
 
-size_t PikhotskiyRScatterSEQ::GetTypeSize(MPI_Datatype datatype) const {
+size_t PikhotskiyRScatterSEQ::GetTypeSize(MPI_Datatype datatype) {
   if (datatype == MPI_INT) {
     return sizeof(int);
-  } else if (datatype == MPI_FLOAT) {
+  }
+  if (datatype == MPI_FLOAT) {
     return sizeof(float);
-  } else if (datatype == MPI_DOUBLE) {
+  }
+  if (datatype == MPI_DOUBLE) {
     return sizeof(double);
   }
   return 0;

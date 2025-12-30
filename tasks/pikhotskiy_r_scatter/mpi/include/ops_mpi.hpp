@@ -20,7 +20,8 @@ class PikhotskiyRScatterMPI : public BaseTask {
   bool RunImpl() override;
   bool PostProcessingImpl() override;
 
-  int CustomScatterInt(const void *sendbuf, int sendcount, void *recvbuf, int recvcount, int root, MPI_Comm comm);
+  static int CustomScatterInt(const void *sendbuf, int sendcount, void *recvbuf, int recvcount, int root,
+                              MPI_Comm comm);
 
   int CustomScatterFloat(const void *sendbuf, int sendcount, void *recvbuf, int recvcount, int root, MPI_Comm comm);
 

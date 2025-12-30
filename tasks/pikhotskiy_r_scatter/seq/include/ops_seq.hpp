@@ -1,5 +1,9 @@
 #pragma once
 
+#include <mpi.h>
+
+#include <cstddef>
+
 #include "pikhotskiy_r_scatter/common/include/common.hpp"
 #include "task/include/task.hpp"
 
@@ -19,7 +23,7 @@ class PikhotskiyRScatterSEQ : public BaseTask {
   bool RunImpl() override;
   bool PostProcessingImpl() override;
 
-  size_t GetTypeSize(MPI_Datatype datatype) const;
+  static size_t GetTypeSize(MPI_Datatype datatype);
 };
 
 }  // namespace pikhotskiy_r_scatter

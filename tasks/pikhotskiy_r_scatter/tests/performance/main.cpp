@@ -1,3 +1,4 @@
+#include <gtest/gtest.h>
 #include <mpi.h>
 
 #include <cstddef>
@@ -81,11 +82,11 @@ class PikhotskiyRScatterPerfTests : public ppc::util::BaseRunPerfTests<InType, O
     const int *actual_data = reinterpret_cast<const int *>(output_data);
 
     for (int i = 0; i < count_per_proc_; i++) {
-      int expected_value;
+      int expected_value = 0;
       if (is_seq) {
         expected_value = i;
       } else {
-        expected_value = rank * count_per_proc_ + i;
+        expected_value = (rank * count_per_proc_) + i;
       }
 
       if (actual_data[i] != expected_value) {
