@@ -1,8 +1,9 @@
+#include <mpi.h>
+
 #include <cstddef>
 #include <string>
 #include <tuple>
 #include <vector>
-#include <mpi.h>
 
 #include "pikhotskiy_r_scatter/common/include/common.hpp"
 #include "pikhotskiy_r_scatter/mpi/include/ops_mpi.hpp"
@@ -24,8 +25,7 @@ class PikhotskiyRScatterPerfTests : public ppc::util::BaseRunPerfTests<InType, O
       return false;
     }
     std::string test_name = test_info->name();
-    return (test_name.find("seq") != std::string::npos) || 
-           (test_name.find("SEQ") != std::string::npos);
+    return (test_name.find("seq") != std::string::npos) || (test_name.find("SEQ") != std::string::npos);
   }
 
  protected:
@@ -55,15 +55,14 @@ class PikhotskiyRScatterPerfTests : public ppc::util::BaseRunPerfTests<InType, O
 
     const void *sendbuf_ptr = i_am_root ? send_vec_.data() : nullptr;
 
-    input_data_ = std::make_tuple(
-      sendbuf_ptr,        // sendbuf
-      count_per_proc_,    // sendcount
-      MPI_INT,            // sendtype
-      recv_vec_.data(),   // recvbuf
-      count_per_proc_,    // recvcount
-      MPI_INT,            // recvtype
-      root,               // root
-      MPI_COMM_WORLD      // comm
+    input_data_ = std::make_tuple(sendbuf_ptr,       // sendbuf
+                                  count_per_proc_,   // sendcount
+                                  MPI_INT,           // sendtype
+                                  recv_vec_.data(),  // recvbuf
+                                  count_per_proc_,   // recvcount
+                                  MPI_INT,           // recvtype
+                                  root,              // root
+                                  MPI_COMM_WORLD     // comm
     );
   }
 
@@ -80,20 +79,20 @@ class PikhotskiyRScatterPerfTests : public ppc::util::BaseRunPerfTests<InType, O
     }
 
     const int *actual_data = reinterpret_cast<const int *>(output_data);
-    
+
     for (int i = 0; i < count_per_proc_; i++) {
       int expected_value;
       if (is_seq) {
-        expected_value = i; 
+        expected_value = i;
       } else {
         expected_value = rank * count_per_proc_ + i;
       }
-      
+
       if (actual_data[i] != expected_value) {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -106,8 +105,8 @@ TEST_P(PikhotskiyRScatterPerfTests, RunPerfModes) {
   ExecuteTest(GetParam());
 }
 
-const auto kAllPerfTasks =
-    ppc::util::MakeAllPerfTasks<InType, PikhotskiyRScatterMPI, PikhotskiyRScatterSEQ>(PPC_SETTINGS_pikhotskiy_r_scatter);
+const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, PikhotskiyRScatterMPI, PikhotskiyRScatterSEQ>(
+    PPC_SETTINGS_pikhotskiy_r_scatter);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 

@@ -10,18 +10,16 @@ class PikhotskiyRScatterSEQ : public BaseTask {
   static constexpr ppc::task::TypeOfTask GetStaticTypeOfTask() {
     return ppc::task::TypeOfTask::kSEQ;
   }
-  
-  explicit PikhotskiyRScatterSEQ(const InType& in);
+
+  explicit PikhotskiyRScatterSEQ(const InType &in);
 
  private:
   bool ValidationImpl() override;
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
-  
-  // Вспомогательные функции для определения размера типа
+
   size_t GetTypeSize(MPI_Datatype datatype) const;
-  bool IsTypeSupported(MPI_Datatype datatype) const;
 };
 
 }  // namespace pikhotskiy_r_scatter
